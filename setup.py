@@ -6,6 +6,7 @@ setup(
 	author = 'Alexander Knieps',
 	author_email = 'a.knieps@fz-juelich.de',
 	description = 'Filename parser & writer for fusion device configuration-related files',
+	url = 'https://github.com/alexrobomind/ak_filenames',
 	py_modules = ['ak_filenames'],
 	install_requires = [
 		'textX>=2.1.0',
