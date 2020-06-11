@@ -3,7 +3,7 @@ import textx.export
 
 grammar = """
 	FileName:
-		Configuration | /[^\/]*\// FileName
+		Configuration | /[^\\/\\\\]*[\\/\\\\]/ FileName
 	;
 	
 	Configuration:
@@ -16,9 +16,9 @@ grammar = """
 			(current_profile  = CurrentProfile)?
 			('D' diffusion_coefficient = RestrictedNumber)?
 			vacuum_tag ?= 'vacuum'
-		)#[/[-\/]/]
-		vacfile_tag ?= /[\.\/]vacfile/
-		(/[\.\/]snapfile\./ snap_id = INT)?
+		)#[/[-\\/\\\\]/]
+		vacfile_tag ?= /[\\.\\/\\\\]vacfile/
+		(/[\\.\\/\\\\]snapfile\./ snap_id = INT)?
 		('.' extension = /[0-9a-zA-Z\\.]+/)?
 	;
 	
@@ -235,5 +235,5 @@ if __name__ == '__main__':
 		m2 = m.strip_extra_info()
 		print(m2)
 		
-	test('.././op12-standard-cw1cm/beta0.05-pow2.0-profile20170809.0000002-itor-4.0/lc2m.snapfile.80.nc.test.mat')
+	test('../.\\op12-standard-cw1cm/beta0.05-pow2.0-profile20170809.0000002-itor-4.0/lc2m.snapfile.80.nc.test.mat')
 	test('op12-high_iota-cw1cm/itor-5-D4-vacuum.nc')
