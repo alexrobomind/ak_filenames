@@ -67,37 +67,70 @@ grammar = """
 	;
 """
 
-class ParabolicPressureProfile:
+class DataClass:
+	def __eq__(self, other):
+		if type(self) is not type(other):
+			return False
+		
+		if self.fields() != other.fields():
+			return False
+		
+		return True
+	
+	def __hash__(self):
+		hashval = 0
+		
+		for f in self.fields():
+			hashval ^= hash(f)
+		
+		return hashval
+
+class ParabolicPressureProfile(DataClass):
 	def __init__(self, parent, baseline = 0.02, inner_exponent = 1, outer_exponent = 1):
 		self.parent = parent
 		self.baseline = baseline
 		self.outer_exponent = outer_exponent
 		self.inner_exponent = inner_exponent
+	
+	def fields(self):
+		return [self.baseline, self.outer_exponent, self.inner_exponent]
 
-class ExponentialCurrentProfile:
+class ExponentialCurrentProfile(DataClass):
 	def __init__(self, parent, exponent = 1):
 		self.parent = parent
 		self.exponent = exponent
+	
+	def fields(self):
+		return [self.exponent]
 
-class DischargePressureProfile:
+class DischargePressureProfile(DataClass):
 	def __init__(self, parent, program):
 		self.parent = parent
-		self.program   = program
+		self.program = program
+	
+	def fields(self):
+		return [self.program]
 
-class VacuumConfiguration:
+class VacuumConfiguration(DataClass):
 	def __init__(self, parent, op = '12', name = 'standard', cw = 0):
 		self.parent = parent
 		self.op     = op
 		self.name   = name
 		self.cw     = 0 if cw is None else cw
+	
+	def fields(self):
+		return [self.op, self.name, self.cw]
 
-class ProgramNo:
+class ProgramNo(DataClass):
 	def __init__(self, parent, year, month, day, no):
 		self.parent = parent
 		self.year = int(year)
 		self.month = int(month)
 		self.day = int(day)
 		self.no = int(no)
+	
+	def fields(self):
+		return [self.year, self.month, self.day, self.no]
 	
 	def __repr__(self):
 		return '{:04d}{:02d}{:02d}.{}'.format(self.year, self.month, self.day, self.no)
@@ -109,7 +142,7 @@ class ProgramNo:
 	def as_three_digit_program(self):
 		return '{:04d}{:02d}{:02d}.{:03d}'.format(self.year, self.month, self.day, self.no)
 
-class Configuration:
+class Configuration(DataClass):
 	def __init__(
 		self, config, beta_ax = None, lc = None, itor = None,
 		pressure_profile = None, current_profile = None, vacuum_tag = False, vacfile_tag = False, snap_id = None, extension = None,
@@ -137,6 +170,21 @@ class Configuration:
 			current_profile = self.current_profile,
 			diffusion_coefficient = self.diffusion_coefficient
 		)
+	
+	def fields(self):
+		return [
+			self.config,
+			self.beta_ax,
+			self.lc,
+			self.itor,
+			self.pressure_profile,
+			self.current_profile,
+			self.vacuum_tag,
+			self.vacfile_tag,
+			self.snap_id,
+			self.extension,
+			self.diffusion_coefficient
+		]
 	
 	def __str__(x):
 		# Number conversion that puts out integer floats without dot
@@ -235,8 +283,10 @@ if __name__ == '__main__':
 	def test(x):
 		m = from_str(x)
 		print(m)
+		print(hash(m))
 		m2 = m.strip_extra_info()
 		print(m2)
+		print(m == m2)
 		
 	test('../.\\op12-standard-cw1cm/beta0.05-pow2.0-profile20170809.0000002-itor-4.0/lc2m.snapfile.80.nc.test.mat')
 	test('op12-high_iota-cw1cm/itor-5-D4-vacuum.nc')
