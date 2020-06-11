@@ -19,7 +19,7 @@ grammar = """
 		)#[/[-\/]/]
 		vacfile_tag ?= /[\.\/]vacfile/
 		(/[\.\/]snapfile\./ snap_id = INT)?
-		('.' extension = /[0-9a-zA-Z\\.]+/)
+		('.' extension = /[0-9a-zA-Z\\.]+/)?
 	;
 	
 	VacuumConfiguration:
