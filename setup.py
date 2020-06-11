@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
 	name = 'fzj-ak-filenames',
-	version = '1.0',
+	version = '1.1',
 	author = 'Alexander Knieps',
 	author_email = 'a.knieps@fz-juelich.de',
 	description = 'Filename parser & writer for fusion device configuration-related files',
