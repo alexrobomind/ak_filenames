@@ -179,6 +179,9 @@ class Configuration:
 		
 		if x.vacuum_tag:
 			s += '-vacuum'
+			
+		if x.diffusion_coefficient is not None:
+			s += '-D' + str(x.diffusion_coefficient)
 		
 		if x.vacfile_tag:
 			s += '.vacfile'
