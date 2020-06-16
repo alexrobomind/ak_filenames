@@ -34,7 +34,7 @@ grammar = """
 	;
 	
 	ParabolicPressureProfile:
-		'parabolic' '_'? baseline = RestrictedNumber '_' inner_exponent = RestrictedNumber '_' outer_exponent = RestrictedNumber
+		('parabolic' | 'am0') '_'? baseline = RestrictedNumber '_' inner_exponent = RestrictedNumber '_' outer_exponent = RestrictedNumber
 	;
 	
 	DischargePressureProfile:
