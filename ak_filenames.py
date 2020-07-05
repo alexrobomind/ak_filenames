@@ -15,9 +15,10 @@ grammar = """
 			(pressure_profile = PressureProfile)?
 			(current_profile  = CurrentProfile)?
 			('D' diffusion_coefficient = RestrictedNumber)?
-			vacuum_tag ?= 'vacuum'
+			('view-' view = ID)?
+			('vacuum')?
 		)#[/[-\\/\\\\]/]
-		vacfile_tag ?= /[\\.\\/\\\\]vacfile/
+		(/[\\.\\/\\\\]vacfile/)?
 		(/[\\.\\/\\\\]snapfile\./ snap_id = INT)?
 		('.' extension = /[0-9a-zA-Z\\.]+/)?
 	;
@@ -46,7 +47,7 @@ grammar = """
 	ProgramNo:
 		year  = /[0-9]{4}/
 		month = /[0-9]{2}/
-		day   = /[0-9]{2}/
+		day	  = /[0-9]{2}/
 		'.' no = INT
 	;
 	
@@ -114,9 +115,9 @@ class DischargePressureProfile(DataClass):
 class VacuumConfiguration(DataClass):
 	def __init__(self, parent, op = '12', name = 'standard', cw = 0):
 		self.parent = parent
-		self.op     = op
-		self.name   = name
-		self.cw     = 0 if cw is None else cw
+		self.op		= op
+		self.name	= name
+		self.cw		= 0 if cw is None else cw
 	
 	def fields(self):
 		return [self.op, self.name, self.cw]
@@ -146,19 +147,18 @@ class Configuration(DataClass):
 	def __init__(
 		self, config, beta_ax = None, lc = None, itor = None,
 		pressure_profile = None, current_profile = None, vacuum_tag = False, vacfile_tag = False, snap_id = None, extension = None,
-		diffusion_coefficient = None
+		diffusion_coefficient = None, view = None
 	):
 		self.config = config
 		self.beta_ax = 0 if beta_ax is None else beta_ax
-		self.lc = 20 if lc is None else lc
+		self.lc = 10 if lc is None else lc
 		self.itor = 0 if itor is None else itor
 		self.pressure_profile = ParabolicPressureProfile(self) if pressure_profile is None else pressure_profile
 		self.current_profile = ExponentialCurrentProfile(self) if current_profile is None else current_profile
-		self.vacuum_tag = vacuum_tag
-		self.vacfile_tag = vacfile_tag
 		self.snap_id = snap_id
 		self.extension = extension
 		self.diffusion_coefficient = diffusion_coefficient
+		self.view = view
 	
 	def strip_extra_info(self):
 		return Configuration(
@@ -168,7 +168,8 @@ class Configuration(DataClass):
 			itor = self.itor,
 			pressure_profile = self.pressure_profile,
 			current_profile = self.current_profile,
-			diffusion_coefficient = self.diffusion_coefficient
+			diffusion_coefficient = self.diffusion_coefficient,
+			view = self.view
 		)
 	
 	def fields(self):
@@ -179,11 +180,10 @@ class Configuration(DataClass):
 			self.itor,
 			self.pressure_profile,
 			self.current_profile,
-			self.vacuum_tag,
-			self.vacfile_tag,
 			self.snap_id,
 			self.extension,
-			self.diffusion_coefficient
+			self.diffusion_coefficient,
+			self.view
 		]
 	
 	def __str__(x):
@@ -202,6 +202,8 @@ class Configuration(DataClass):
 		
 		if x.beta_ax != 0:
 			s += '-beta' + num2str(x.beta_ax)
+		else:
+			s += '-vacuum'
 		
 		pp = x.pressure_profile
 		if isinstance(pp, DischargePressureProfile):
@@ -222,17 +224,14 @@ class Configuration(DataClass):
 		if exp != 1:
 			s += '-pow' + num2str(exp)
 		
-		if x.lc != 20:
+		if x.lc != 10:
 			s += '-lc' + num2str(x.lc) + 'm'
-		
-		if x.vacuum_tag:
-			s += '-vacuum'
 			
 		if x.diffusion_coefficient is not None:
 			s += '-D' + num2str(x.diffusion_coefficient)
 		
-		if x.vacfile_tag:
-			s += '.vacfile'
+		if x.view:
+			s += '-view-' + x.view
 		
 		if x.snap_id != None:
 			s += '.snapfile.' + str(x.snap_id)
@@ -289,4 +288,4 @@ if __name__ == '__main__':
 		print(m == m2)
 		
 	test('../.\\op12-standard-cw1cm/beta0.05-pow2.0-profile20170809.0000002-itor-4.0/lc2m.snapfile.80.nc.test.mat')
-	test('op12-high_iota-cw1cm/itor-5-D4-vacuum.nc')
+	test('op12-high_iota-cw1cm/itor-5-D4-view-divertor.nc')
