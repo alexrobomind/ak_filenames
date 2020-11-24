@@ -14,10 +14,10 @@ grammar = """
 			('itor' '+'? itor = RestrictedNumber)?
 			(pressure_profile = PressureProfile)?
 			(current_profile  = CurrentProfile)?
-            ('nr' nr = INT)?
-            ('nz' nz = INT)?
-            ('nphi' nphi = INT)?
-            ('nsym' nsym = INT)?
+			('nr' nr = INT)?
+			('nz' nz = INT)?
+			('nphi' nphi = INT)?
+			('nsym' nsym = INT)?
 			('D' diffusion_coefficient = RestrictedNumber)?
 			('view-' view = ID)?
 			('vacuum')?
@@ -164,7 +164,7 @@ class Configuration(DataClass):
 		self, config, beta_ax = None, lc = None, itor = None,
 		pressure_profile = None, current_profile = None, vacuum_tag = False, vacfile_tag = False, snap_id = None, extension = None,
 		diffusion_coefficient = None, view = None,
-        nr = None, nz = None, nphi = None, nsym = None
+		nr = None, nz = None, nphi = None, nsym = None
 	):
 		self.config = config
 		self.beta_ax = 0 if beta_ax is None else beta_ax
@@ -176,10 +176,10 @@ class Configuration(DataClass):
 		self.extension = extension
 		self.diffusion_coefficient = diffusion_coefficient
 		self.view = view
-        self.nr = 256 if nr is None else nr
-        self.nz = 256 if nz is None else nz
-        self.nphi = 128 if nphi is None else nphi
-        self.nsym = 5 if nsym is None else nsym
+		self.nr = 256 if nr is None else nr
+		self.nz = 256 if nz is None else nz
+		self.nphi = 128 if nphi is None else nphi
+		self.nsym = 5 if nsym is None else nsym
 	
 	def strip_extra_info(self):
 		return Configuration(
@@ -260,18 +260,18 @@ class Configuration(DataClass):
 		
 		if x.lc != 10:
 			s += '-lc' + num2str(x.lc) + 'm'
-        
-        if x.nr != 256:
-            s += '-nr' + str(x.nr)
-        
-        if x.nz != 256:
-            s += '-nz' + str(x.nz)
-        
-        if x.nphi != 128:
-            s += '-nphi' + str(x.nphi)
-        
-        if x.nsym != 5:
-            s += '-nsym' + str(x.nsym)
+		
+		if x.nr != 256:
+			s += '-nr' + str(x.nr)
+		
+		if x.nz != 256:
+			s += '-nz' + str(x.nz)
+		
+		if x.nphi != 128:
+			s += '-nphi' + str(x.nphi)
+		
+		if x.nsym != 5:
+			s += '-nsym' + str(x.nsym)
 			
 		if x.diffusion_coefficient is not None:
 			s += '-D' + num2str(x.diffusion_coefficient)
