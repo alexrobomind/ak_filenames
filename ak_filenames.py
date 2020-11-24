@@ -14,6 +14,10 @@ grammar = """
 			('itor' '+'? itor = RestrictedNumber)?
 			(pressure_profile = PressureProfile)?
 			(current_profile  = CurrentProfile)?
+            ('nr' nr = INT)?
+            ('nz' nz = INT)?
+            ('nphi' nphi = INT)?
+            ('nsym' nsym = INT)?
 			('D' diffusion_coefficient = RestrictedNumber)?
 			('view-' view = ID)?
 			('vacuum')?
@@ -31,7 +35,7 @@ grammar = """
 	;
 	
 	PressureProfile:
-		ParabolicPressureProfile | DischargePressureProfile
+		ParabolicPressureProfile | DischargePressureProfile | ('poly' ('_')? PolynomialProfile)
 	;
 	
 	ParabolicPressureProfile:
@@ -40,6 +44,10 @@ grammar = """
 	
 	DischargePressureProfile:
 		'profile' program = Shot
+	;
+	
+	PolynomialProfile:
+		coefficients += RestrictedNumber['_']
 	;
 	
 	Shot: ProgramNo | MDSPlusShot;
@@ -56,7 +64,7 @@ grammar = """
 	;
 	
 	CurrentProfile:
-		ExponentialCurrentProfile
+		ExponentialCurrentProfile | ('jpoly' ('_')? PolynomialProfile)
 	;
 	
 	ExponentialCurrentProfile:
@@ -112,6 +120,14 @@ class DischargePressureProfile(DataClass):
 	def fields(self):
 		return [self.program]
 
+class PolynomialProfile(DataClass):
+	def __init__(self, parent, coefficients = []):
+		self.parent = parent
+		self.coefficients = tuple(coefficients)
+	
+	def fields(self):
+		return [self.coefficients]
+
 class VacuumConfiguration(DataClass):
 	def __init__(self, parent, op = '12', name = 'standard', cw = 0):
 		self.parent = parent
@@ -147,7 +163,8 @@ class Configuration(DataClass):
 	def __init__(
 		self, config, beta_ax = None, lc = None, itor = None,
 		pressure_profile = None, current_profile = None, vacuum_tag = False, vacfile_tag = False, snap_id = None, extension = None,
-		diffusion_coefficient = None, view = None
+		diffusion_coefficient = None, view = None,
+        nr = None, nz = None, nphi = None, nsym = None
 	):
 		self.config = config
 		self.beta_ax = 0 if beta_ax is None else beta_ax
@@ -159,6 +176,10 @@ class Configuration(DataClass):
 		self.extension = extension
 		self.diffusion_coefficient = diffusion_coefficient
 		self.view = view
+        self.nr = 256 if nr is None else nr
+        self.nz = 256 if nz is None else nz
+        self.nphi = 128 if nphi is None else nphi
+        self.nsym = 5 if nsym is None else nsym
 	
 	def strip_extra_info(self):
 		return Configuration(
@@ -215,17 +236,42 @@ class Configuration(DataClass):
 					num2str(pp.inner_exponent),
 					num2str(pp.outer_exponent)
 				)
+		elif isinstance(pp, PolynomialProfile):
+			s += '-poly'
+			
+			for c in pp.coefficients:
+				s += '_' + str(c)
 		
 		if x.itor != 0:
 			sign = '+' if x.itor > 0 else ''
 			s += '-itor' + sign + num2str(x.itor)
 		
-		exp = x.current_profile.exponent
-		if exp != 1:
-			s += '-pow' + num2str(exp)
+		cp = x.current_profile
+		
+		if isinstance(cp, ExponentialCurrentProfile):
+			exp = x.current_profile.exponent
+			if exp != 1:
+				s += '-pow' + num2str(exp)
+		elif isinstance(cp, PolynomialProfile):
+			s += '-jpoly'
+			
+			for c in cp.coefficients:
+				s += '_' + str(c)
 		
 		if x.lc != 10:
 			s += '-lc' + num2str(x.lc) + 'm'
+        
+        if x.nr != 256:
+            s += '-nr' + str(x.nr)
+        
+        if x.nz != 256:
+            s += '-nz' + str(x.nz)
+        
+        if x.nphi != 128:
+            s += '-nphi' + str(x.nphi)
+        
+        if x.nsym != 5:
+            s += '-nsym' + str(x.nsym)
 			
 		if x.diffusion_coefficient is not None:
 			s += '-D' + num2str(x.diffusion_coefficient)
@@ -247,7 +293,8 @@ classes = [
 	DischargePressureProfile,
 	VacuumConfiguration,
 	Configuration,
-	ProgramNo
+	ProgramNo,
+	PolynomialProfile
 ]
 
 # Conversion from MDSplus no. to program number
@@ -282,6 +329,8 @@ if __name__ == '__main__':
 	def test(x):
 		m = from_str(x)
 		print(m)
+		print(m.current_profile)
+		print(m.pressure_profile)
 		print(hash(m))
 		m2 = m.strip_extra_info()
 		print(m2)
@@ -289,3 +338,4 @@ if __name__ == '__main__':
 		
 	test('../.\\op12-standard-cw1cm/beta0.05-pow2.0-profile20170809.0000002-itor-4.0/lc2m.snapfile.80.nc.test.mat')
 	test('op12-high_iota-cw1cm/itor-5-D4-view-divertor.nc')
+	test('op12-high_iota-cw1cm/itor-5-D4-view-divertor-poly0_-1-jpoly_-1_0.nc')
